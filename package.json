@@ -1,0 +1,24 @@
+{
+  "name": "airdrop-x",
+  "version": "1.0.0",
+  "description": "AirDrop-X - Secure P2P Web-Based File Transfer System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "airdrop",
+    "webrtc",
+    "p2p",
+    "file-transfer",
+    "socket.io",
+    "express"
+  ],
+  "author": "College Project Demonstration",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
