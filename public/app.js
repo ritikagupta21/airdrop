@@ -359,7 +359,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- File Drag & Drop Handlers ---
 
-  btnBrowse.addEventListener('click', () => fileInput.click());
+  // Open file picker when Browse button is clicked
+  btnBrowse.addEventListener('click', (e) => {
+    e.stopPropagation(); // Prevent triggering dropzone click twice
+    fileInput.click();
+  });
+
+  // Open file picker when user clicks anywhere on the dropzone area
+  dropzone.addEventListener('click', (e) => {
+    // Don't trigger if clicking inside the dropzone's child button (btn-browse handles it)
+    if (e.target === btnBrowse || btnBrowse.contains(e.target)) return;
+    fileInput.click();
+  });
 
   fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {

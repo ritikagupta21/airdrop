@@ -40,8 +40,6 @@
       <div class="nav-links">
         <a href="#transfer-section" class="nav-link active"><i class="ri-send-plane-fill"></i> Transfer</a>
         <a href="#features" class="nav-link"><i class="ri-flashlight-line"></i> Features</a>
-        <a href="#how-it-works" class="nav-link"><i class="ri-git-merge-line"></i> How It Works</a>
-        <a href="#tech-stack" class="nav-link"><i class="ri-code-s-slash-line"></i> Tech Stack</a>
         <a href="#security" class="nav-link"><i class="ri-shield-check-line"></i> Security</a>
         <a href="#about" class="nav-link"><i class="ri-information-line"></i> About</a>
       </div>
@@ -74,9 +72,6 @@
       <div class="hero-actions">
         <a href="#transfer-section" class="btn btn-primary btn-lg glow-effect">
           <i class="ri-upload-cloud-2-line"></i> Start File Transfer
-        </a>
-        <a href="#how-it-works" class="btn btn-secondary btn-lg">
-          <i class="ri-play-circle-line"></i> See How It Works
         </a>
       </div>
 
@@ -400,99 +395,9 @@
     </div>
   </section>
 
-  <!-- Section: How It Works -->
-  <section class="section-padding bg-darker" id="how-it-works">
-    <div class="section-container">
-      <div class="section-header center">
-        <div class="badge badge-info">Protocol Architecture</div>
-        <h2 class="section-title">How AirDrop-X Works</h2>
-        <p class="section-subtitle">Step-by-step technical execution flow of P2P WebRTC data transmission.</p>
-      </div>
 
-      <div class="steps-wrapper">
-        <div class="step-card">
-          <div class="step-number">01</div>
-          <div class="step-content">
-            <h3>Signaling Room Creation</h3>
-            <p>Sender requests a unique 6-digit code. Express and Socket.io initialize an isolated signaling room on the server.</p>
-          </div>
-        </div>
 
-        <div class="step-card">
-          <div class="step-number">02</div>
-          <div class="step-content">
-            <h3>WebRTC SDP Handshake</h3>
-            <p>Receiver joins using the code. Socket.io relays SDP Offers, Answers, and Google STUN ICE Candidates (`stun.l.google.com:19302`).</p>
-          </div>
-        </div>
 
-        <div class="step-card">
-          <div class="step-number">03</div>
-          <div class="step-content">
-            <h3>Direct DataChannel Binding</h3>
-            <p>Once NAT traversal completes, a direct peer-to-peer `RTCDataChannel` is established. Socket.io signaling disengages.</p>
-          </div>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">04</div>
-          <div class="step-content">
-            <h3>64 KB Chunk Transfer & Assembly</h3>
-            <p>Sender slices file into 64 KB ArrayBuffer chunks via FileReader. Receiver reconstructs file Blob and triggers native download.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Section: Technology Stack -->
-  <section class="section-padding" id="tech-stack">
-    <div class="section-container">
-      <div class="section-header center">
-        <div class="badge badge-accent">Built With Modern Web Tech</div>
-        <h2 class="section-title">Technology Stack</h2>
-        <p class="section-subtitle">Core components powering the AirDrop-X architecture.</p>
-      </div>
-
-      <div class="tech-grid">
-        <div class="tech-card">
-          <div class="tech-logo"><i class="ri-html5-line color-html"></i></div>
-          <h3>HTML5 & CSS3</h3>
-          <p>Semantic markup, flexbox/grid layouts, glassmorphism, and responsive CSS variables.</p>
-        </div>
-
-        <div class="tech-card">
-          <div class="tech-logo"><i class="ri-javascript-line color-js"></i></div>
-          <h3>Vanilla JavaScript</h3>
-          <p>High-performance asynchronous ES6+ JS, FileReader API, Blobs, and DOM event listeners.</p>
-        </div>
-
-        <div class="tech-card">
-          <div class="tech-logo"><i class="ri-nodejs-line color-node"></i></div>
-          <h3>Node.js & Express</h3>
-          <p>Lightweight backend server serving static files and managing HTTP connections.</p>
-        </div>
-
-        <div class="tech-card">
-          <div class="tech-logo"><i class="ri-sockets-line color-socket"></i></div>
-          <h3>Socket.io</h3>
-          <p>Bi-directional WebSocket connection for instant 6-digit room matching and WebRTC signaling.</p>
-        </div>
-
-        <div class="tech-card">
-          <div class="tech-logo"><i class="ri-remote-control-line color-webrtc"></i></div>
-          <h3>WebRTC DataChannel</h3>
-          <p>Peer-to-peer real-time communication framework enabling low-latency data transport.</p>
-        </div>
-
-        <div class="tech-card">
-          <div class="tech-logo"><i class="ri-server-line color-stun"></i></div>
-          <h3>Google STUN Server</h3>
-          <p>Traverses symmetric NATs and firewalls to discover public IP endpoint addresses.</p>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- Section: Security & Privacy -->
   <section class="section-padding bg-darker" id="security">
@@ -607,16 +512,11 @@
           <h4>Navigation</h4>
           <a href="#transfer-section">File Transfer</a>
           <a href="#features">Key Features</a>
-          <a href="#how-it-works">How It Works</a>
-          <a href="#tech-stack">Technology Stack</a>
+          <a href="#security">Security</a>
+          <a href="#about">About</a>
         </div>
 
-        <div class="footer-links-group">
-          <h4>System Specs</h4>
-          <a href="#security">DTLS Encryption</a>
-          <a href="#about">Academic Overview</a>
-          <a href="#about">64 KB Buffer Stream</a>
-        </div>
+
       </div>
 
       <div class="footer-bottom">
