@@ -1,4 +1,4 @@
-// AirDrop-X v2.1 - Multi-Device WebRTC + Light Theme UI
+// AirDrop-X v2.2 - Multi-Device WebRTC + 1-to-1 / 1-to-N mode + Speed Optimized
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
