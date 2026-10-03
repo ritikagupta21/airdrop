@@ -1,3 +1,4 @@
+// AirDrop-X v2.1 - Multi-Device WebRTC + Light Theme UI
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
