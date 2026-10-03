@@ -7,17 +7,14 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
+  cors: { origin: '*', methods: ['GET', 'POST'] }
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Store room metadata: roomId -> { host: socketId, guests: Set([socketId]) }
+// rooms: roomCode -> { host: socketId, guests: Set<socketId> }
 const rooms = new Map();
 
 function generateRoomCode() {
@@ -29,112 +26,81 @@ function generateRoomCode() {
 }
 
 function leaveCurrentRoom(socket) {
-  if (socket.currentRoom) {
-    const roomCode = socket.currentRoom;
-    const room = rooms.get(roomCode);
-    
-    if (room) {
-      if (room.host === socket.id) {
-        // Host left -> Terminate session for all
-        socket.to(roomCode).emit('session-terminated');
-        rooms.delete(roomCode);
-        console.log(`[Room Terminated] Host left, room ${roomCode} deleted.`);
-      } else {
-        // Guest left
-        room.guests.delete(socket.id);
-        // Notify host
-        if (room.host) {
-          io.to(room.host).emit('peer-left', { peerId: socket.id });
-        }
-      }
+  if (!socket.currentRoom) return;
+  const roomCode = socket.currentRoom;
+  const room = rooms.get(roomCode);
+  if (room) {
+    if (room.host === socket.id) {
+      // Host left — end session for all guests
+      socket.to(roomCode).emit('session-terminated');
+      rooms.delete(roomCode);
+      console.log(`[Room Terminated] Host left. Room ${roomCode} deleted.`);
+    } else {
+      // Guest left — notify host only
+      room.guests.delete(socket.id);
+      if (room.host) io.to(room.host).emit('peer-left', { peerId: socket.id });
+      console.log(`[Guest Left] ${socket.id} left Room ${roomCode}`);
     }
-    socket.leave(roomCode);
-    socket.currentRoom = null;
   }
+  socket.leave(roomCode);
+  socket.currentRoom = null;
 }
 
 io.on('connection', (socket) => {
-  console.log(`[Socket] Client connected: ${socket.id}`);
+  console.log(`[+] Connected: ${socket.id}`);
 
-  // Create a new room code
   socket.on('create-room', (callback) => {
     leaveCurrentRoom(socket);
-
     const roomCode = generateRoomCode();
     socket.join(roomCode);
     rooms.set(roomCode, { host: socket.id, guests: new Set() });
     socket.currentRoom = roomCode;
-
-    console.log(`[Room Created] Room: ${roomCode} by Host: ${socket.id}`);
-    
-    if (typeof callback === 'function') {
-      callback({ success: true, roomCode });
-    }
+    console.log(`[Room Created] ${roomCode} by ${socket.id}`);
+    if (typeof callback === 'function') callback({ success: true, roomCode });
   });
 
-  // Join an existing room code
   socket.on('join-room', ({ roomCode }, callback) => {
     const code = String(roomCode || '').trim();
-
     if (!code || code.length !== 6 || isNaN(code)) {
-      if (typeof callback === 'function') return callback({ success: false, message: 'Invalid room code.' });
-      return;
+      return typeof callback === 'function' && callback({ success: false, message: 'Invalid 6-digit code.' });
     }
-
     const room = rooms.get(code);
-
     if (!room) {
-      if (typeof callback === 'function') return callback({ success: false, message: 'Room code does not exist or has expired.' });
-      return;
+      return typeof callback === 'function' && callback({ success: false, message: 'Room does not exist or has expired.' });
     }
-
     if (room.host === socket.id || room.guests.has(socket.id)) {
-      if (typeof callback === 'function') return callback({ success: true, roomCode: code });
-      return;
+      return typeof callback === 'function' && callback({ success: true, roomCode: code });
     }
-
     leaveCurrentRoom(socket);
-
     socket.join(code);
     room.guests.add(socket.id);
     socket.currentRoom = code;
-
-    console.log(`[Room Joined] Guest: ${socket.id} joined Room: ${code}`);
-
-    // Notify the HOST that a new peer joined
+    console.log(`[Guest Joined] ${socket.id} joined Room ${code}`);
+    // Notify host
     io.to(room.host).emit('peer-joined', { peerId: socket.id });
-
-    if (typeof callback === 'function') {
-      callback({ success: true, roomCode: code });
-    }
+    if (typeof callback === 'function') callback({ success: true, roomCode: code });
   });
 
-  // Explicit leave room
   socket.on('leave-room', (callback) => {
     leaveCurrentRoom(socket);
-    if (typeof callback === 'function') {
-      callback({ success: true });
+    if (typeof callback === 'function') callback({ success: true });
+  });
+
+  // WebRTC signaling — route directly to target peer
+  socket.on('signal', ({ target, signalData }) => {
+    if (target) {
+      io.to(target).emit('signal', { sender: socket.id, signalData });
     }
   });
 
-  // WebRTC Signaling Relay
-  socket.on('signal', ({ target, signalData }) => {
-    // Route signal exactly to the target socket
-    io.to(target).emit('signal', {
-      sender: socket.id,
-      signalData
-    });
-  });
-
-  // Handle Disconnect
   socket.on('disconnect', () => {
-    console.log(`[Socket] Client disconnected: ${socket.id}`);
+    console.log(`[-] Disconnected: ${socket.id}`);
     leaveCurrentRoom(socket);
   });
 });
 
 server.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(`🚀 AirDrop-X Server running on http://localhost:${PORT}`);
-  console.log(`==================================================`);
+  console.log(`================================================`);
+  console.log(`🚀 AirDrop-X running on http://localhost:${PORT}`);
+  console.log(`================================================`);
 });

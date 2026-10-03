@@ -4,28 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AirDrop-X – Secure P2P Web-Based File Transfer System</title>
-  <meta name="description" content="Direct browser-based peer-to-peer file transfer system built with WebRTC, Socket.io, Express, and Node.js. Fast, encrypted, and no cloud storage required.">
-  
+  <meta name="description" content="Direct browser-based peer-to-peer file transfer. Fast, encrypted, no cloud storage required.">
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  
+
   <!-- Remix Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
-  
+
   <!-- Custom CSS -->
   <link rel="stylesheet" href="styles.css">
-  
+
   <!-- Socket.io Client -->
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-
-  <!-- Background Decorative Ambient Glows -->
-  <div class="glow-orb orb-1"></div>
-  <div class="glow-orb orb-2"></div>
-  <div class="glow-orb orb-3"></div>
 
   <!-- Navigation Bar -->
   <nav class="navbar" id="navbar">
@@ -36,7 +31,7 @@
         </div>
         <span class="brand-name">AirDrop<span class="brand-accent">-X</span></span>
       </a>
-      
+
       <div class="nav-links">
         <a href="#transfer-section" class="nav-link active"><i class="ri-send-plane-fill"></i> Transfer</a>
         <a href="#features" class="nav-link"><i class="ri-flashlight-line"></i> Features</a>
@@ -62,15 +57,15 @@
         <i class="ri-sparkles-line"></i> Simple. Fast. Direct.
       </div>
       <h1 class="hero-title">
-        Secure & Fast <span class="gradient-text">File Transfer.</span>
+        Secure &amp; Fast <span class="gradient-text">File Transfer.</span>
       </h1>
       <p class="hero-subtitle">
-        High-speed browser-to-browser file sharing with end-to-end WebRTC encryption. 
-        No cloud server uploads, no file size caps, and instant device pairing with 6-digit connection codes.
+        High-speed browser-to-browser file sharing with end-to-end WebRTC encryption.
+        No cloud uploads. No file size caps. Connect multiple devices with one 6-digit code.
       </p>
 
       <div class="hero-actions">
-        <a href="#transfer-section" class="btn btn-primary btn-lg glow-effect">
+        <a href="#transfer-section" class="btn btn-primary btn-lg">
           <i class="ri-upload-cloud-2-line"></i> Start File Transfer
         </a>
       </div>
@@ -99,13 +94,13 @@
     <div class="section-container">
       <div class="section-header center">
         <h2 class="section-title">P2P Transfer Control Panel</h2>
-        <p class="section-subtitle">Pair two devices instantly using a 6-digit connection code and transfer files directly across browsers.</p>
+        <p class="section-subtitle">Pair multiple devices using a 6-digit code and transfer files directly browser-to-browser.</p>
       </div>
 
-      <!-- App Card Grid -->
+      <!-- Two-column grid -->
       <div class="transfer-grid">
-        
-        <!-- Left Panel: Device Connection & Pairing -->
+
+        <!-- LEFT PANEL: Device Connection -->
         <div class="card glass-card connection-card">
           <div class="card-header">
             <div class="card-title">
@@ -113,7 +108,7 @@
             </div>
             <div class="card-header-actions">
               <span class="badge badge-outline" id="connection-badge">Ready to Pair</span>
-              <button class="btn btn-danger btn-sm hidden" id="btn-disconnect-peer" title="Disconnect Peer Session">
+              <button class="btn btn-danger btn-sm hidden" id="btn-disconnect-peer" title="Disconnect">
                 <i class="ri-shut-down-line"></i> Disconnect
               </button>
             </div>
@@ -121,16 +116,16 @@
 
           <div class="card-body">
 
-            <!-- Inline Error Alert Box -->
+            <!-- Error Alert -->
             <div class="error-alert-box hidden" id="error-alert-box">
               <i class="ri-error-warning-fill error-icon"></i>
-              <div class="error-message" id="error-alert-text">Error message text here</div>
-              <button class="btn-close-error" id="btn-close-error" aria-label="Close error message">
+              <div class="error-message" id="error-alert-text">Error message here</div>
+              <button class="btn-close-error" id="btn-close-error" aria-label="Close">
                 <i class="ri-close-line"></i>
               </button>
             </div>
 
-            <!-- Network Mode Config Bar -->
+            <!-- Network Mode -->
             <div class="network-mode-bar">
               <label for="select-network-mode"><i class="ri-wifi-line"></i> Network Mode:</label>
               <select id="select-network-mode" class="network-mode-select">
@@ -139,7 +134,7 @@
               </select>
             </div>
 
-            <!-- Connection Tabs -->
+            <!-- Tabs -->
             <div class="connection-tabs">
               <button class="tab-btn active" id="tab-create">
                 <i class="ri-add-circle-line"></i> Share Code
@@ -149,10 +144,10 @@
               </button>
             </div>
 
-            <!-- Create Room View -->
+            <!-- Create Room -->
             <div class="tab-content active" id="view-create">
-              <p class="hint-text">Generate a 6-digit connection code for the receiving device to enter.</p>
-              
+              <p class="hint-text">Generate a 6-digit code. Multiple devices can join the same session.</p>
+
               <div class="code-box-wrapper">
                 <div class="code-display" id="generated-code">------</div>
                 <button class="btn btn-icon btn-secondary" id="btn-copy-code" title="Copy Code">
@@ -166,21 +161,20 @@
                 </button>
               </div>
 
-              <!-- Receiver Instructions -->
               <div class="qr-placeholder-box">
                 <div class="qr-icon-circle">
                   <i class="ri-qr-code-line"></i>
                 </div>
                 <div class="qr-text">
                   <strong>Testing on same machine?</strong>
-                  <span>Open another tab in your browser, click "Join Device", and enter this 6-digit code!</span>
+                  <span>Open another tab, click "Join Device", and enter this code!</span>
                 </div>
               </div>
             </div>
 
-            <!-- Join Room View -->
+            <!-- Join Room -->
             <div class="tab-content" id="view-join">
-              <p class="hint-text">Enter the 6-digit code displayed on the sending device.</p>
+              <p class="hint-text">Enter the 6-digit code shown on the sender's device.</p>
 
               <div class="input-group">
                 <label for="input-room-code">Connection Code</label>
@@ -195,42 +189,44 @@
               </button>
             </div>
 
-            <!-- Peer Connection Status Box -->
-
-            <!-- Connected Devices UI -->
+            <!-- Peer Status -->
             <div class="peer-status-box" id="peer-status-box">
+              <div class="peer-status-icon-wrapper" id="peer-icon-wrapper">
+                <i class="ri-radar-line" id="peer-status-icon"></i>
+              </div>
               <div class="peer-status-info">
                 <div class="peer-status-title" id="peer-status-title">Awaiting Connection</div>
-                <div class="peer-status-desc" id="peer-status-desc">Generate or enter a connection code above to begin.</div>
+                <div class="peer-status-desc" id="peer-status-desc">Generate or enter a code above to begin.</div>
               </div>
             </div>
-            
+
+            <!-- Connected Devices -->
             <div class="connected-devices-section hidden" id="connected-devices-section">
               <div class="devices-header">
-                <h3 style="font-size:1.1rem; margin:0;">Connected Devices (<span id="device-count">0</span>)</h3>
+                <span class="devices-title">Connected Devices (<span id="device-count">0</span>)</span>
                 <button class="btn btn-outline btn-sm" id="btn-select-all">Select All</button>
               </div>
               <div class="device-list" id="device-list">
-                <!-- Devices injected here -->
+                <!-- injected by JS -->
               </div>
             </div>
 
           </div>
         </div>
 
-        <!-- Right Panel: File Selection & Transfer Progress -->
+        <!-- RIGHT PANEL: File Upload & Transfer -->
         <div class="card glass-card transfer-card">
-          
-          <!-- Selected File Header (Displayed clearly at top when selected) -->
+
+          <!-- Selected File Banner -->
           <div class="selected-file-banner hidden" id="selected-file-banner">
             <div class="file-icon-box">
               <i class="ri-file-3-line" id="selected-file-icon"></i>
             </div>
             <div class="file-meta">
-              <div class="file-name" id="selected-file-name">sample_document.pdf</div>
+              <div class="file-name" id="selected-file-name">filename.ext</div>
               <div class="file-details">
-                <span class="file-size-badge" id="selected-file-size">14.8 MB</span>
-                <span class="file-type-badge" id="selected-file-type">PDF Document</span>
+                <span class="file-size-badge" id="selected-file-size">0 B</span>
+                <span class="file-type-badge" id="selected-file-type">File</span>
               </div>
             </div>
             <button class="btn-clear-file" id="btn-clear-file" title="Remove File">
@@ -240,21 +236,21 @@
 
           <div class="card-header">
             <div class="card-title">
-              <i class="ri-folder-zip-line"></i> File Upload & Dispatch
+              <i class="ri-folder-zip-line"></i> File Upload &amp; Dispatch
             </div>
             <span class="badge badge-info" id="transfer-mode-badge">P2P Ready</span>
           </div>
 
           <div class="card-body">
-            
-            <!-- Drag & Drop Dropzone -->
+
+            <!-- Dropzone -->
             <div class="dropzone" id="dropzone">
               <input type="file" id="file-input" class="file-input-hidden">
               <div class="dropzone-content">
                 <div class="dropzone-icon">
                   <i class="ri-upload-2-line"></i>
                 </div>
-                <h3>Drag & Drop File Here</h3>
+                <h3>Drag &amp; Drop File Here</h3>
                 <p>or click to browse from your device</p>
                 <div class="supported-tags">
                   <span>Documents</span>
@@ -269,7 +265,7 @@
               </div>
             </div>
 
-            <!-- Pre-loaded Sample File Quick Selector -->
+            <!-- Sample File -->
             <div class="sample-file-bar">
               <span>Quick Test Sample:</span>
               <button class="sample-chip" id="btn-sample-file">
@@ -277,9 +273,8 @@
               </button>
             </div>
 
-            
-            <!-- Send File Buttons -->
-            <div class="transfer-action-area" style="display:flex; gap:10px;">
+            <!-- Send Buttons -->
+            <div class="transfer-action-area">
               <button class="btn btn-primary btn-block" id="btn-send-selected" disabled>
                 <i class="ri-send-plane-fill"></i> Send to Selected
               </button>
@@ -288,7 +283,15 @@
               </button>
             </div>
 
-
+            <!-- Progress Panel -->
+            <div class="progress-panel hidden" id="progress-panel">
+              <div class="progress-header">
+                <span class="progress-status" id="progress-status-text">Transferring...</span>
+                <span class="progress-percentage" id="progress-percentage">0%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar-fill" style="width:0%"></div>
+              </div>
               <div class="progress-stats-row">
                 <div class="stat-box">
                   <span class="stat-box-label">Speed</span>
@@ -303,7 +306,6 @@
                   <span class="stat-box-value" id="transfer-eta">-- sec</span>
                 </div>
               </div>
-
               <div class="cancel-row">
                 <button class="btn btn-danger btn-sm" id="btn-cancel-transfer">
                   <i class="ri-close-circle-line"></i> Cancel Transfer
@@ -311,20 +313,18 @@
               </div>
             </div>
 
-            <!-- File Transfer Completion Card (Hidden by default) -->
+            <!-- Completion Card -->
             <div class="completion-card hidden" id="completion-card">
               <div class="completion-icon">
                 <i class="ri-checkbox-circle-fill"></i>
               </div>
               <h3 class="completion-title" id="completion-title">File Transfer Completed!</h3>
-              <p class="completion-desc" id="completion-desc">The file has been successfully transferred directly peer-to-peer using 64 KB WebRTC data chunks.</p>
-
-              <div class="download-action-box" id="download-action-box">
-                <a href="#" class="btn btn-success btn-lg btn-block glow-effect" id="btn-download-file" download>
+              <p class="completion-desc" id="completion-desc">Transferred successfully via WebRTC P2P.</p>
+              <div class="download-action-box hidden" id="download-action-box">
+                <a href="#" class="btn btn-success btn-lg btn-block" id="btn-download-file" download>
                   <i class="ri-download-2-line"></i> Download Received File
                 </a>
               </div>
-
               <button class="btn btn-secondary btn-sm" id="btn-reset-transfer">
                 <i class="ri-refresh-line"></i> Transfer Another File
               </button>
@@ -333,81 +333,60 @@
           </div>
         </div>
 
-      </div>
+      </div><!-- /transfer-grid -->
     </div>
   </main>
 
-  <!-- Section: Key Features -->
+  <!-- Features Section -->
   <section class="section-padding" id="features">
     <div class="section-container">
       <div class="section-header center">
         <div class="badge badge-accent">Core Capabilities</div>
         <h2 class="section-title">Key Features of AirDrop-X</h2>
-        <p class="section-subtitle">Engineered specifically for privacy, maximum bandwidth utilization, and simple connectivity.</p>
+        <p class="section-subtitle">Engineered for privacy, maximum bandwidth, and simple multi-device connectivity.</p>
       </div>
 
       <div class="features-grid">
         <div class="feature-card glass-card">
-          <div class="feature-icon bg-cyan">
-            <i class="ri-shield-flash-line"></i>
-          </div>
+          <div class="feature-icon bg-cyan"><i class="ri-shield-flash-line"></i></div>
           <h3>Zero Server Storage</h3>
-          <p>Files travel directly from Browser A to Browser B. The backend server only facilitates initial signaling and never touches your payload.</p>
+          <p>Files travel directly Browser-to-Browser. The server only handles signaling, never your data.</p>
         </div>
-
         <div class="feature-card glass-card">
-          <div class="feature-icon bg-purple">
-            <i class="ri-speed-up-line"></i>
-          </div>
+          <div class="feature-icon bg-purple"><i class="ri-speed-up-line"></i></div>
           <h3>64 KB Chunk Streaming</h3>
-          <p>Optimized 64 KB array buffer chunking with active backpressure detection (`bufferedAmountLow`) ensures stutter-free streaming and peak throughput.</p>
+          <p>Optimized 64 KB chunks with backpressure detection ensures stutter-free streaming at peak throughput.</p>
         </div>
-
         <div class="feature-card glass-card">
-          <div class="feature-icon bg-blue">
-            <i class="ri-key-2-line"></i>
-          </div>
-          <h3>6-Digit Room Pairing</h3>
-          <p>Instant pairing system using dynamic 6-digit room codes generated on-demand without tedious user registrations or account creation.</p>
+          <div class="feature-icon bg-blue"><i class="ri-group-line"></i></div>
+          <h3>Multi-Device Sessions</h3>
+          <p>One sender, multiple receivers. Share the same 6-digit code with as many devices as you need.</p>
         </div>
-
         <div class="feature-card glass-card">
-          <div class="feature-icon bg-green">
-            <i class="ri-lock-password-line"></i>
-          </div>
-          <h3>DTLS & SRTP Encryption</h3>
-          <p>All WebRTC DataChannel streams are natively protected using Datagram Transport Layer Security (DTLS) and Secure Real-time Transport Protocol.</p>
+          <div class="feature-icon bg-green"><i class="ri-lock-password-line"></i></div>
+          <h3>DTLS &amp; SRTP Encryption</h3>
+          <p>All WebRTC DataChannel streams are natively protected with DTLS and SRTP encryption.</p>
         </div>
-
         <div class="feature-card glass-card">
-          <div class="feature-icon bg-orange">
-            <i class="ri-global-line"></i>
-          </div>
-          <h3>Cross-Platform Web Standard</h3>
-          <p>Works natively in standard modern web browsers on Windows, macOS, Linux, Android, and iOS without extra app downloads.</p>
+          <div class="feature-icon bg-orange"><i class="ri-global-line"></i></div>
+          <h3>Cross-Platform</h3>
+          <p>Works in any modern browser on Windows, macOS, Linux, Android, and iOS — no app needed.</p>
         </div>
-
         <div class="feature-card glass-card">
-          <div class="feature-icon bg-pink">
-            <i class="ri-infinite-line"></i>
-          </div>
+          <div class="feature-icon bg-pink"><i class="ri-infinite-line"></i></div>
           <h3>Unlimited File Size</h3>
-          <p>Because data is streamed chunk-by-chunk directly between local device RAM buffers, files of any size can be transferred effortlessly.</p>
+          <p>Data is streamed chunk-by-chunk directly between RAM buffers — no size limits, ever.</p>
         </div>
       </div>
     </div>
   </section>
 
-
-
-
-
-  <!-- Section: Security & Privacy -->
+  <!-- Security Section -->
   <section class="section-padding bg-darker" id="security">
     <div class="section-container">
       <div class="section-header center">
-        <div class="badge badge-success">Bank-Grade Privacy</div>
-        <h2 class="section-title">Security & Privacy Assurance</h2>
+        <div class="badge badge-success">Privacy First</div>
+        <h2 class="section-title">Security &amp; Privacy Assurance</h2>
         <p class="section-subtitle">Designed from the ground up around strict data minimization.</p>
       </div>
 
@@ -417,31 +396,28 @@
             <i class="ri-shield-keyhole-line"></i>
             <div>
               <h4>End-to-End Encryption</h4>
-              <p>WebRTC enforces mandatory DTLS encryption for all data packets, preventing man-in-the-middle packet sniffing.</p>
+              <p>WebRTC enforces mandatory DTLS encryption preventing man-in-the-middle attacks.</p>
             </div>
           </div>
-
           <div class="security-feature">
             <i class="ri-delete-bin-7-line"></i>
             <div>
-              <h4>Ephemeral Room Sessioning</h4>
-              <p>6-digit connection room codes auto-expire upon disconnection or transfer completion to prevent unauthorized access.</p>
+              <h4>Ephemeral Room Sessions</h4>
+              <p>Room codes auto-expire on disconnect to prevent unauthorized access.</p>
             </div>
           </div>
-
           <div class="security-feature">
             <i class="ri-eye-off-line"></i>
             <div>
               <h4>Zero Metadata Logging</h4>
-              <p>File names, content, and transfer histories are never stored on any database or server log file.</p>
+              <p>File names, content, and transfer histories are never stored on any server.</p>
             </div>
           </div>
-
           <div class="security-feature">
             <i class="ri-cpu-line"></i>
             <div>
-              <h4>Client-Side Memory Assembly</h4>
-              <p>Files are reassembled directly in client RAM, ensuring immediate garbage collection upon download.</p>
+              <h4>Client-Side Assembly</h4>
+              <p>Files are reassembled in your browser RAM with immediate garbage collection after download.</p>
             </div>
           </div>
         </div>
@@ -449,18 +425,16 @@
     </div>
   </section>
 
-  <!-- Section: About & Project Details -->
+  <!-- About Section -->
   <section class="section-padding" id="about">
     <div class="section-container">
       <div class="about-card glass-card">
         <div class="about-badge">Academic Project Showcase</div>
         <h2>About AirDrop-X System</h2>
         <p>
-          <strong>AirDrop-X</strong> was developed as a modern college project demonstration to illustrate high-performance browser-based peer-to-peer communication. By leveraging WebRTC's `RTCDataChannel` combined with WebSocket signaling, AirDrop-X solves the latency and privacy challenges associated with uploading large files to third-party cloud storage providers.
+          <strong>AirDrop-X</strong> was developed as a modern college project demonstrating high-performance browser-based peer-to-peer communication. By leveraging WebRTC's <code>RTCDataChannel</code> with WebSocket signaling, AirDrop-X solves the latency and privacy challenges of cloud file sharing.
         </p>
-        <p>
-          The platform operates completely peer-to-peer: once signaling connects two peers, data flows directly between device network interfaces over 64 KB memory chunks.
-        </p>
+        <p>Once signaling connects peers, data flows directly between devices over 64 KB memory chunks — no cloud, no middleman.</p>
 
         <div class="tech-spec-table">
           <div class="spec-row">
@@ -472,12 +446,12 @@
             <span class="spec-val">WebRTC DataChannel (SCTP over DTLS)</span>
           </div>
           <div class="spec-row">
-            <span class="spec-name">Signaling Mechanism</span>
+            <span class="spec-name">Signaling</span>
             <span class="spec-val">Socket.io WebSockets</span>
           </div>
           <div class="spec-row">
-            <span class="spec-name">Chunk Resolution</span>
-            <span class="spec-val">64 KB (65,536 bytes) ArrayBuffer Slices</span>
+            <span class="spec-name">Chunk Size</span>
+            <span class="spec-val">64 KB (65,536 bytes) ArrayBuffer</span>
           </div>
           <div class="spec-row">
             <span class="spec-name">NAT Traversal</span>
@@ -486,14 +460,13 @@
         </div>
       </div>
 
-      <!-- Future Scope -->
       <div class="future-box">
-        <h3><i class="ri-rocket-line"></i> Future Enhancements & Scope</h3>
+        <h3><i class="ri-rocket-line"></i> Future Enhancements</h3>
         <ul class="future-list">
-          <li><i class="ri-checkbox-circle-line"></i> <strong>Folder & Multi-File Batch Transfers:</strong> Native recursive zip streaming via JSZip.</li>
-          <li><i class="ri-checkbox-circle-line"></i> <strong>Password Protected Transfers:</strong> AES-GCM 256-bit client-side key derivation prior to chunk slicing.</li>
-          <li><i class="ri-checkbox-circle-line"></i> <strong>Multi-Peer Mesh Transfers:</strong> Simultaneous 1-to-N broadcasting across multiple connected peers.</li>
-          <li><i class="ri-checkbox-circle-line"></i> <strong>Local Network Auto-Discovery:</strong> Automatic mDNS local Wi-Fi beaconing without manual room code entry.</li>
+          <li><i class="ri-checkbox-circle-line"></i> <strong>Multi-File Batch Transfers:</strong> Native recursive zip streaming via JSZip.</li>
+          <li><i class="ri-checkbox-circle-line"></i> <strong>Password Protected Transfers:</strong> AES-GCM 256-bit client-side encryption.</li>
+          <li><i class="ri-checkbox-circle-line"></i> <strong>Multi-Peer Mesh:</strong> Simultaneous 1-to-N broadcasting.</li>
+          <li><i class="ri-checkbox-circle-line"></i> <strong>Auto-Discovery:</strong> mDNS local Wi-Fi beaconing without room codes.</li>
         </ul>
       </div>
     </div>
@@ -508,9 +481,8 @@
             <i class="ri-radar-line logo-icon"></i>
             <span class="brand-name">AirDrop<span class="brand-accent">-X</span></span>
           </a>
-          <p>Secure, direct, browser-to-browser P2P file transfer system.</p>
+          <p>Secure, direct, browser-to-browser P2P file transfer.</p>
         </div>
-
         <div class="footer-links-group">
           <h4>Navigation</h4>
           <a href="#transfer-section">File Transfer</a>
@@ -518,12 +490,9 @@
           <a href="#security">Security</a>
           <a href="#about">About</a>
         </div>
-
-
       </div>
-
       <div class="footer-bottom">
-        <p>&copy; 2026 AirDrop-X College Project. Built with Node.js, Express, Socket.io & WebRTC.</p>
+        <p>&copy; 2026 AirDrop-X. Built with Node.js, Express, Socket.io &amp; WebRTC.</p>
         <div class="footer-status">
           <span class="pulse-dot"></span> System Operational
         </div>

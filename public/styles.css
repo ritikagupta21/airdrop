@@ -1612,3 +1612,82 @@ body {
   width: 0%;
   transition: width 0.2s;
 }
+
+/* Connected Devices Section */
+.connected-devices-section {
+  margin-top: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.devices-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+}
+.devices-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+.device-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.device-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s;
+}
+.device-item:last-child { border-bottom: none; }
+.device-item:hover { background: var(--bg-tertiary); }
+.device-item-top { display: flex; align-items: center; justify-content: space-between; }
+.device-item-left { display: flex; align-items: center; gap: 0.65rem; }
+.device-name { font-size: 0.88rem; font-weight: 600; color: var(--text-primary); }
+.device-status { font-size: 0.75rem; color: var(--accent-green); margin-top: 1px; }
+.device-checkbox {
+  width: 16px; height: 16px; cursor: pointer;
+  accent-color: var(--accent-blue);
+}
+.device-progress-bar {
+  height: 5px;
+  background: var(--border-color);
+  border-radius: 3px;
+  margin-top: 0.5rem;
+  display: none;
+  overflow: hidden;
+}
+.device-progress-fill {
+  height: 100%;
+  background: var(--accent-green);
+  width: 0%;
+  transition: width 0.25s ease;
+  border-radius: 3px;
+}
+.device-progress-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Transfer action area */
+.transfer-action-area {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.transfer-action-area .btn { flex: 1; }
+
+/* Btn accent */
+.btn-accent {
+  background: var(--accent-green);
+  color: #fff;
+  border: none;
+}
+.btn-accent:hover { opacity: 0.88; }
