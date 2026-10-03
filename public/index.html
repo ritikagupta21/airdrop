@@ -9,7 +9,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   
   <!-- Remix Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
@@ -59,10 +59,10 @@
   <header class="hero-section">
     <div class="hero-container">
       <div class="hero-badge">
-        <i class="ri-sparkles-line"></i> Simple. Fast. Direct.
+        <i class="ri-sparkles-line"></i> WebRTC Powered P2P File Transfer Engine
       </div>
       <h1 class="hero-title">
-        Secure & Fast <span class="gradient-text">File Transfer.</span>
+        Secure. Direct. <span class="gradient-text">Wireless.</span>
       </h1>
       <p class="hero-subtitle">
         High-speed browser-to-browser file sharing with end-to-end WebRTC encryption. 
@@ -196,22 +196,13 @@
             </div>
 
             <!-- Peer Connection Status Box -->
-
-            <!-- Connected Devices UI -->
             <div class="peer-status-box" id="peer-status-box">
+              <div class="peer-status-icon-wrapper pulse-ring" id="peer-icon-wrapper">
+                <i class="ri-radar-line" id="peer-status-icon"></i>
+              </div>
               <div class="peer-status-info">
                 <div class="peer-status-title" id="peer-status-title">Awaiting Connection</div>
                 <div class="peer-status-desc" id="peer-status-desc">Generate or enter a connection code above to begin.</div>
-              </div>
-            </div>
-            
-            <div class="connected-devices-section hidden" id="connected-devices-section">
-              <div class="devices-header">
-                <h3 style="font-size:1.1rem; margin:0;">Connected Devices (<span id="device-count">0</span>)</h3>
-                <button class="btn btn-outline btn-sm" id="btn-select-all">Select All</button>
-              </div>
-              <div class="device-list" id="device-list">
-                <!-- Devices injected here -->
               </div>
             </div>
 
@@ -277,17 +268,23 @@
               </button>
             </div>
 
-            
-            <!-- Send File Buttons -->
-            <div class="transfer-action-area" style="display:flex; gap:10px;">
-              <button class="btn btn-primary btn-block" id="btn-send-selected" disabled>
-                <i class="ri-send-plane-fill"></i> Send to Selected
-              </button>
-              <button class="btn btn-accent btn-block" id="btn-send-all" disabled>
-                <i class="ri-send-plane-2-fill"></i> Send to All
+            <!-- Send File Button -->
+            <div class="transfer-action-area">
+              <button class="btn btn-primary btn-lg btn-block glow-effect" id="btn-send-file" disabled>
+                <i class="ri-send-plane-2-fill"></i> Send File via WebRTC
               </button>
             </div>
 
+            <!-- Transfer Progress Panel (Hidden by default) -->
+            <div class="progress-panel hidden" id="progress-panel">
+              <div class="progress-header">
+                <span class="progress-status" id="progress-status-text">Transferring file...</span>
+                <span class="progress-percentage" id="progress-percentage">0%</span>
+              </div>
+
+              <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%;"></div>
+              </div>
 
               <div class="progress-stats-row">
                 <div class="stat-box">
