@@ -14,13 +14,11 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Serve static assets from public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Store room metadata: roomId -> Set of socket IDs
+// Store room metadata: roomId -> { host: socketId, guests: Set([socketId]) }
 const rooms = new Map();
 
-// Helper to generate a random 6-digit room code
 function generateRoomCode() {
   let code;
   do {
@@ -29,17 +27,24 @@ function generateRoomCode() {
   return code;
 }
 
-// Helper to safely remove a socket from its current room
 function leaveCurrentRoom(socket) {
   if (socket.currentRoom) {
     const roomCode = socket.currentRoom;
     const room = rooms.get(roomCode);
+    
     if (room) {
-      room.delete(socket.id);
-      socket.to(roomCode).emit('peer-left', { peerId: socket.id });
-      if (room.size === 0) {
+      if (room.host === socket.id) {
+        // Host left -> Terminate session for all
+        socket.to(roomCode).emit('session-terminated');
         rooms.delete(roomCode);
-        console.log(`[Room Cleaned] Room ${roomCode} deleted (empty).`);
+        console.log(`[Room Terminated] Host left, room ${roomCode} deleted.`);
+      } else {
+        // Guest left
+        room.guests.delete(socket.id);
+        // Notify host
+        if (room.host) {
+          io.to(room.host).emit('peer-left', { peerId: socket.id });
+        }
       }
     }
     socket.leave(roomCode);
@@ -52,21 +57,17 @@ io.on('connection', (socket) => {
 
   // Create a new room code
   socket.on('create-room', (callback) => {
-    // Leave previous room if any
     leaveCurrentRoom(socket);
 
     const roomCode = generateRoomCode();
     socket.join(roomCode);
-    rooms.set(roomCode, new Set([socket.id]));
+    rooms.set(roomCode, { host: socket.id, guests: new Set() });
     socket.currentRoom = roomCode;
 
-    console.log(`[Room Created] Room: ${roomCode} by Socket: ${socket.id}`);
+    console.log(`[Room Created] Room: ${roomCode} by Host: ${socket.id}`);
     
-    const response = { success: true, roomCode };
     if (typeof callback === 'function') {
-      callback(response);
-    } else {
-      socket.emit('room-created', response);
+      callback({ success: true, roomCode });
     }
   });
 
@@ -75,52 +76,39 @@ io.on('connection', (socket) => {
     const code = String(roomCode || '').trim();
 
     if (!code || code.length !== 6 || isNaN(code)) {
-      const err = { success: false, message: 'Please enter a valid 6-digit room code.' };
-      if (typeof callback === 'function') return callback(err);
-      return socket.emit('join-error', err);
+      if (typeof callback === 'function') return callback({ success: false, message: 'Invalid room code.' });
+      return;
     }
 
     const room = rooms.get(code);
 
     if (!room) {
-      const err = { success: false, message: 'Room code does not exist or has expired.' };
-      if (typeof callback === 'function') return callback(err);
-      return socket.emit('join-error', err);
+      if (typeof callback === 'function') return callback({ success: false, message: 'Room code does not exist or has expired.' });
+      return;
     }
 
-    if (room.has(socket.id)) {
-      const res = { success: true, roomCode: code };
-      if (typeof callback === 'function') return callback(res);
-      return socket.emit('room-joined', res);
+    if (room.host === socket.id || room.guests.has(socket.id)) {
+      if (typeof callback === 'function') return callback({ success: true, roomCode: code });
+      return;
     }
 
-    if (room.size >= 2) {
-      const err = { success: false, message: 'Room is full. Maximum 2 devices allowed per room code.' };
-      if (typeof callback === 'function') return callback(err);
-      return socket.emit('join-error', err);
-    }
-
-    // Leave previous room if any
     leaveCurrentRoom(socket);
 
     socket.join(code);
-    room.add(socket.id);
+    room.guests.add(socket.id);
     socket.currentRoom = code;
 
-    console.log(`[Room Joined] Socket: ${socket.id} joined Room: ${code}`);
+    console.log(`[Room Joined] Guest: ${socket.id} joined Room: ${code}`);
 
-    // Notify existing peer in room
-    socket.to(code).emit('peer-joined', { peerId: socket.id });
+    // Notify the HOST that a new peer joined
+    io.to(room.host).emit('peer-joined', { peerId: socket.id });
 
-    const response = { success: true, roomCode: code };
     if (typeof callback === 'function') {
-      callback(response);
-    } else {
-      socket.emit('room-joined', response);
+      callback({ success: true, roomCode: code });
     }
   });
 
-  // Explicit leave room event
+  // Explicit leave room
   socket.on('leave-room', (callback) => {
     leaveCurrentRoom(socket);
     if (typeof callback === 'function') {
@@ -130,26 +118,11 @@ io.on('connection', (socket) => {
 
   // WebRTC Signaling Relay
   socket.on('signal', ({ target, signalData }) => {
-    if (socket.currentRoom) {
-      socket.to(socket.currentRoom).emit('signal', {
-        sender: socket.id,
-        signalData
-      });
-    }
-  });
-
-  // File metadata notification relay
-  socket.on('file-metadata', (metadata) => {
-    if (socket.currentRoom) {
-      socket.to(socket.currentRoom).emit('file-metadata', metadata);
-    }
-  });
-
-  // Transfer cancellation relay
-  socket.on('cancel-transfer', () => {
-    if (socket.currentRoom) {
-      socket.to(socket.currentRoom).emit('transfer-cancelled');
-    }
+    // Route signal exactly to the target socket
+    io.to(target).emit('signal', {
+      sender: socket.id,
+      signalData
+    });
   });
 
   // Handle Disconnect
@@ -164,4 +137,3 @@ server.listen(PORT, () => {
   console.log(`🚀 AirDrop-X Server running on http://localhost:${PORT}`);
   console.log(`==================================================`);
 });
-
