@@ -49,13 +49,18 @@ function leaveCurrentRoom(socket) {
 io.on('connection', (socket) => {
   console.log(`[+] Connected: ${socket.id}`);
 
-  socket.on('create-room', (callback) => {
+  socket.on('create-room', (data, callback) => {
+    // Handle optional data payload
+    let mode = 'multi';
+    if (typeof data === 'function') { callback = data; }
+    else if (data && data.mode) { mode = data.mode; }
+
     leaveCurrentRoom(socket);
     const roomCode = generateRoomCode();
     socket.join(roomCode);
-    rooms.set(roomCode, { host: socket.id, guests: new Set() });
+    rooms.set(roomCode, { host: socket.id, guests: new Set(), mode });
     socket.currentRoom = roomCode;
-    console.log(`[Room Created] ${roomCode} by ${socket.id}`);
+    console.log(`[Room Created] ${roomCode} by ${socket.id} (mode: ${mode})`);
     if (typeof callback === 'function') callback({ success: true, roomCode });
   });
 
@@ -67,6 +72,9 @@ io.on('connection', (socket) => {
     const room = rooms.get(code);
     if (!room) {
       return typeof callback === 'function' && callback({ success: false, message: 'Room does not exist or has expired.' });
+    }
+    if (room.mode === 'single' && room.guests.size >= 1 && !room.guests.has(socket.id)) {
+      return typeof callback === 'function' && callback({ success: false, message: 'Room is full (1-to-1 mode only).' });
     }
     if (room.host === socket.id || room.guests.has(socket.id)) {
       return typeof callback === 'function' && callback({ success: true, roomCode: code });

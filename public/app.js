@@ -150,11 +150,16 @@ document.addEventListener('DOMContentLoaded', () => {
     hideError();
     rtcManager.cleanup();
     clearDeviceList();
-    socket.emit('create-room', (res) => {
+    const modeSelect = document.getElementById('select-room-mode');
+    const mode = modeSelect ? modeSelect.value : 'multi';
+    socket.emit('create-room', { mode }, (res) => {
       if (res && res.success) {
         currentRoomCode = res.roomCode;
         generatedCodeEl.textContent = currentRoomCode;
-        updatePeerStatus('waiting', 'Awaiting Receivers', `Share code ${currentRoomCode} — multiple devices can join!`);
+        const subtitleText = mode === 'single' 
+          ? `Share code ${currentRoomCode} — waiting for 1 device.` 
+          : `Share code ${currentRoomCode} — multiple devices can join!`;
+        updatePeerStatus('waiting', 'Awaiting Receivers', subtitleText);
         connectionBadge.textContent = 'Room Active';
         connectionBadge.className = 'badge badge-outline';
         connectedSection.classList.remove('hidden');
