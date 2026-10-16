@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: airdrop-x
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
