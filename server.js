@@ -36,9 +36,15 @@ function leaveCurrentRoom(socket) {
       rooms.delete(roomCode);
       console.log(`[Room Terminated] Host left. Room ${roomCode} deleted.`);
     } else {
-      // Guest left — notify host only
+      // Guest left — notify host and room
       room.guests.delete(socket.id);
       if (room.host) io.to(room.host).emit('peer-left', { peerId: socket.id });
+      io.to(roomCode).emit('chat-system-message', {
+        text: `Device ${socket.id.substring(0, 4).toUpperCase()} left the session.`,
+        type: 'leave',
+        peerId: socket.id,
+        timestamp: Date.now()
+      });
       console.log(`[Guest Left] ${socket.id} left Room ${roomCode}`);
     }
   }
@@ -86,12 +92,66 @@ io.on('connection', (socket) => {
     console.log(`[Guest Joined] ${socket.id} joined Room ${code}`);
     // Notify host
     io.to(room.host).emit('peer-joined', { peerId: socket.id });
+    // Notify room in chat
+    io.to(code).emit('chat-system-message', {
+      text: `Device ${socket.id.substring(0, 4).toUpperCase()} joined the room.`,
+      type: 'join',
+      peerId: socket.id,
+      timestamp: Date.now()
+    });
     if (typeof callback === 'function') callback({ success: true, roomCode: code });
   });
 
   socket.on('leave-room', (callback) => {
     leaveCurrentRoom(socket);
     if (typeof callback === 'function') callback({ success: true });
+  });
+
+  // Room Chat Messaging
+  socket.on('send-chat', (data, callback) => {
+    if (!socket.currentRoom) {
+      if (typeof callback === 'function') callback({ success: false, message: 'Not connected to a room.' });
+      return;
+    }
+    const room = rooms.get(socket.currentRoom);
+    if (!room) {
+      if (typeof callback === 'function') callback({ success: false, message: 'Room has expired.' });
+      return;
+    }
+    const text = String((data && data.text) || '').trim();
+    if (!text) {
+      if (typeof callback === 'function') callback({ success: false, message: 'Message is empty.' });
+      return;
+    }
+
+    const isHost = room.host === socket.id;
+    const defaultName = isHost ? 'Host' : `Device ${socket.id.substring(0, 4).toUpperCase()}`;
+    const senderName = (data && data.senderName) ? String(data.senderName).trim().substring(0, 30) : defaultName;
+
+    const messageData = {
+      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      roomCode: socket.currentRoom,
+      senderId: socket.id,
+      senderName,
+      isHost,
+      text,
+      timestamp: Date.now()
+    };
+
+    io.to(socket.currentRoom).emit('chat-message', messageData);
+    if (typeof callback === 'function') callback({ success: true, message: messageData });
+  });
+
+  socket.on('typing', ({ isTyping }) => {
+    if (!socket.currentRoom) return;
+    const room = rooms.get(socket.currentRoom);
+    const isHost = room && room.host === socket.id;
+    const senderName = isHost ? 'Host' : `Device ${socket.id.substring(0, 4).toUpperCase()}`;
+    socket.to(socket.currentRoom).emit('peer-typing', {
+      senderId: socket.id,
+      senderName,
+      isTyping: !!isTyping
+    });
   });
 
   // WebRTC signaling — route directly to target peer

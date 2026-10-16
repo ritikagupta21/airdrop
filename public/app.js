@@ -164,6 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
         connectionBadge.className = 'badge badge-outline';
         connectedSection.classList.remove('hidden');
         btnDisconnectPeer.classList.remove('hidden');
+        updateChatRoom(currentRoomCode, true);
+        appendSystemMessage(`Room #${currentRoomCode} created. Share code to start chatting & transferring files.`);
       } else {
         showError('Failed to generate room code.');
       }
@@ -196,6 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updatePeerStatus('waiting', 'Joining...', `Connecting to session ${code}...`);
         connectedSection.classList.add('hidden');
         btnDisconnectPeer.classList.remove('hidden');
+        updateChatRoom(currentRoomCode, true);
+        appendSystemMessage(`Joined Room #${currentRoomCode}. You can now send messages and links!`);
       } else {
         showError(res ? res.message : 'Failed to join room.');
       }
@@ -210,6 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.emit('leave-room', () => {
       rtcManager.cleanup();
       currentRoomCode = null;
+      updateChatRoom(null, false);
+      appendSystemMessage('Session closed.');
       clearDeviceList();
       connectedSection.classList.add('hidden');
       btnDisconnectPeer.classList.add('hidden');
@@ -491,6 +497,435 @@ document.addEventListener('DOMContentLoaded', () => {
         navLinks.style.borderBottom = '1px solid var(--border-color)';
         navLinks.style.zIndex = '999';
       }
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  AirDrop-X Instant Room Chat & Link Sharing Module
+  // ═══════════════════════════════════════════════════════════════
+
+  // Chat DOM elements
+  const navChatBtn            = document.getElementById('nav-chat-btn');
+  const navChatBadge          = document.getElementById('nav-chat-badge');
+  const btnShortcutOpenChat   = document.getElementById('btn-shortcut-open-chat');
+  const shortcutChatBadge     = document.getElementById('shortcut-chat-badge');
+  const chatLauncherBtn       = document.getElementById('chat-launcher-btn');
+  const chatUnreadBadge       = document.getElementById('chat-unread-badge');
+  const chatWindowPanel       = document.getElementById('chat-window-panel');
+  const chatStatusDot         = document.getElementById('chat-status-dot');
+  const chatRoomBadge         = document.getElementById('chat-room-badge');
+  const chatSubtitle          = document.getElementById('chat-subtitle');
+  const btnToggleSound        = document.getElementById('btn-toggle-sound');
+  const soundIcon             = document.getElementById('sound-icon');
+  const btnClearChat          = document.getElementById('btn-clear-chat');
+  const btnCloseChat          = document.getElementById('btn-close-chat');
+  const btnQuickUrl           = document.getElementById('btn-quick-url');
+  const btnPasteClipboard     = document.getElementById('btn-paste-clipboard');
+  const btnShareSampleLink    = document.getElementById('btn-share-sample-link');
+  const chatMessagesContainer = document.getElementById('chat-messages-container');
+  const chatEmptyState        = document.getElementById('chat-empty-state');
+  const chatTypingIndicator   = document.getElementById('chat-typing-indicator');
+  const chatTypingText        = document.getElementById('chat-typing-text');
+  const btnToggleEmoji        = document.getElementById('btn-toggle-emoji');
+  const chatEmojiDrawer       = document.getElementById('chat-emoji-drawer');
+  const chatInputForm         = document.getElementById('chat-input-form');
+  const chatInputField        = document.getElementById('chat-input-field');
+
+  let isChatOpen = false;
+  let unreadCount = 0;
+  let soundEnabled = true;
+  let typingTimeout = null;
+  let lastTypingTime = 0;
+
+  function updateUnreadBadges() {
+    if (unreadCount > 0) {
+      const displayCount = unreadCount > 99 ? '99+' : String(unreadCount);
+      if (chatUnreadBadge) {
+        chatUnreadBadge.textContent = displayCount;
+        chatUnreadBadge.classList.remove('hidden');
+      }
+      if (navChatBadge) {
+        navChatBadge.textContent = displayCount;
+        navChatBadge.classList.remove('hidden');
+      }
+      if (shortcutChatBadge) {
+        shortcutChatBadge.textContent = displayCount;
+        shortcutChatBadge.classList.remove('hidden');
+      }
+    } else {
+      if (chatUnreadBadge) chatUnreadBadge.classList.add('hidden');
+      if (navChatBadge) navChatBadge.classList.add('hidden');
+      if (shortcutChatBadge) shortcutChatBadge.classList.add('hidden');
+    }
+  }
+
+  function openChat() {
+    if (!chatWindowPanel) return;
+    chatWindowPanel.classList.remove('hidden');
+    if (chatLauncherBtn) chatLauncherBtn.classList.add('is-open');
+    isChatOpen = true;
+    unreadCount = 0;
+    updateUnreadBadges();
+    scrollChatToBottom();
+    if (chatInputField) chatInputField.focus();
+  }
+
+  function closeChat() {
+    if (!chatWindowPanel) return;
+    chatWindowPanel.classList.add('hidden');
+    if (chatLauncherBtn) chatLauncherBtn.classList.remove('is-open');
+    if (chatEmojiDrawer) chatEmojiDrawer.classList.add('hidden');
+    isChatOpen = false;
+  }
+
+  function toggleChat() {
+    if (isChatOpen) closeChat();
+    else openChat();
+  }
+
+  function updateChatRoom(code, isConnected) {
+    if (code) {
+      if (chatRoomBadge) chatRoomBadge.textContent = '#' + code;
+      if (chatSubtitle) chatSubtitle.textContent = isConnected ? `Active in Room #${code}` : `Room #${code} ready`;
+      if (chatStatusDot) chatStatusDot.className = 'chat-status-dot connected';
+    } else {
+      if (chatRoomBadge) chatRoomBadge.textContent = 'No Room';
+      if (chatSubtitle) chatSubtitle.textContent = 'Pair devices to start chatting';
+      if (chatStatusDot) chatStatusDot.className = 'chat-status-dot disconnected';
+    }
+  }
+
+  function playNotificationChime() {
+    if (!soundEnabled) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch (_) {}
+  }
+
+  const URL_REGEX = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s]|www\.[^\s<]+[^<.,:;"')\]\s])/gi;
+
+  function extractUrls(text) {
+    if (!text) return [];
+    const matches = text.match(URL_REGEX);
+    if (!matches) return [];
+    const unique = [...new Set(matches)];
+    return unique.map(url => {
+      let clean = url.trim();
+      let href = clean;
+      if (!href.startsWith('http://') && !href.startsWith('https://')) {
+        href = 'https://' + href;
+      }
+      return { raw: url, href: href };
+    });
+  }
+
+  function getIconForUrl(url) {
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.toLowerCase();
+      if (host.includes('youtube.com') || host.includes('youtu.be')) return { icon: 'ri-youtube-fill', cls: 'icon-yt' };
+      if (host.includes('github.com')) return { icon: 'ri-github-fill', cls: 'icon-gh' };
+      if (host.includes('drive.google.com') || host.includes('docs.google.com')) return { icon: 'ri-google-drive-fill', cls: 'icon-gd' };
+      if (host.includes('twitter.com') || host.includes('x.com')) return { icon: 'ri-twitter-x-fill', cls: 'icon-tw' };
+      if (host.includes('instagram.com')) return { icon: 'ri-instagram-line', cls: 'icon-ig' };
+      if (host.includes('linkedin.com')) return { icon: 'ri-linkedin-box-fill', cls: 'icon-li' };
+      if (host.includes('discord.com') || host.includes('discord.gg')) return { icon: 'ri-discord-fill', cls: 'icon-dc' };
+      if (host.includes('figma.com')) return { icon: 'ri-figma-line', cls: 'icon-figma' };
+      return { icon: 'ri-global-line', cls: 'icon-web' };
+    } catch (_) {
+      return { icon: 'ri-global-line', cls: 'icon-web' };
+    }
+  }
+
+  function getDomainFromUrl(url) {
+    try {
+      const parsed = new URL(url);
+      return parsed.hostname.replace(/^www\./, '');
+    } catch (_) {
+      return 'Web Link';
+    }
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function formatMessageText(text) {
+    const escaped = escapeHtml(text);
+    return escaped.replace(URL_REGEX, (match) => {
+      let href = match;
+      if (!href.startsWith('http://') && !href.startsWith('https://')) {
+        href = 'https://' + href;
+      }
+      return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="chat-inline-link" title="Open Link">${match} <i class="ri-external-link-line"></i></a>`;
+    });
+  }
+
+  function scrollChatToBottom() {
+    if (chatMessagesContainer) {
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
+  }
+
+  function appendChatMessage(data, isOutgoing) {
+    if (chatEmptyState) chatEmptyState.classList.add('hidden');
+
+    const timeStr = new Date(data.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const row = document.createElement('div');
+    row.className = `chat-msg-row ${isOutgoing ? 'outgoing' : 'incoming'}`;
+
+    const urls = extractUrls(data.text);
+    let linkCardsHtml = '';
+
+    if (urls.length > 0) {
+      linkCardsHtml = urls.map(u => {
+        const meta = getIconForUrl(u.href);
+        const domain = getDomainFromUrl(u.href);
+        return `
+          <div class="chat-rich-link-card">
+            <div class="link-card-header">
+              <div class="link-icon-box ${meta.cls}">
+                <i class="${meta.icon}"></i>
+              </div>
+              <div class="link-meta">
+                <span class="link-domain">${escapeHtml(domain)}</span>
+                <span class="link-full-url" title="${escapeHtml(u.href)}">${escapeHtml(u.href)}</span>
+              </div>
+            </div>
+            <div class="link-card-actions">
+              <a href="${escapeHtml(u.href)}" target="_blank" rel="noopener noreferrer" class="btn-link-action btn-link-open" title="Open link in new tab">
+                <i class="ri-external-link-line"></i> Open Link
+              </a>
+              <button type="button" class="btn-link-action btn-link-copy" data-url="${escapeHtml(u.href)}" title="Copy link to clipboard">
+                <i class="ri-file-copy-line"></i> Copy
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const senderHtml = isOutgoing ? '' : `<div class="chat-msg-sender">${escapeHtml(data.senderName || 'Peer')}</div>`;
+
+    row.innerHTML = `
+      ${senderHtml}
+      <div class="chat-msg-bubble">
+        <div class="chat-msg-content">${formatMessageText(data.text)}</div>
+        ${linkCardsHtml}
+        <div class="chat-msg-meta">
+          <span>${timeStr}</span>
+          ${isOutgoing ? '<i class="ri-check-double-line"></i>' : ''}
+        </div>
+      </div>
+    `;
+
+    row.querySelectorAll('.btn-link-copy').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const urlToCopy = btn.getAttribute('data-url');
+        if (urlToCopy) {
+          navigator.clipboard.writeText(urlToCopy).then(() => {
+            btn.innerHTML = '<i class="ri-check-line"></i> Copied!';
+            setTimeout(() => {
+              btn.innerHTML = '<i class="ri-file-copy-line"></i> Copy';
+            }, 2000);
+          }).catch(() => {});
+        }
+      });
+    });
+
+    chatMessagesContainer.appendChild(row);
+    scrollChatToBottom();
+  }
+
+  function appendSystemMessage(text) {
+    if (!chatMessagesContainer) return;
+    if (chatEmptyState) chatEmptyState.classList.add('hidden');
+    const row = document.createElement('div');
+    row.className = 'chat-msg-row system';
+    row.innerHTML = `<div class="chat-system-pill">${escapeHtml(text)}</div>`;
+    chatMessagesContainer.appendChild(row);
+    scrollChatToBottom();
+  }
+
+  // Socket chat listeners
+  socket.on('chat-message', (data) => {
+    const isOutgoing = data.senderId === socket.id;
+    appendChatMessage(data, isOutgoing);
+
+    if (!isOutgoing) {
+      if (!isChatOpen) {
+        unreadCount++;
+        updateUnreadBadges();
+      }
+      playNotificationChime();
+    }
+  });
+
+  socket.on('chat-system-message', (data) => {
+    if (data && data.text) {
+      appendSystemMessage(data.text);
+    }
+  });
+
+  socket.on('peer-typing', ({ senderName, isTyping }) => {
+    if (!chatTypingIndicator || !chatTypingText) return;
+    if (isTyping) {
+      chatTypingText.textContent = `${senderName || 'Someone'} is typing...`;
+      chatTypingIndicator.classList.remove('hidden');
+      scrollChatToBottom();
+    } else {
+      chatTypingIndicator.classList.add('hidden');
+    }
+  });
+
+  // Controls & Button bindings
+  if (chatLauncherBtn) chatLauncherBtn.addEventListener('click', toggleChat);
+  if (btnCloseChat) btnCloseChat.addEventListener('click', closeChat);
+  if (navChatBtn) navChatBtn.addEventListener('click', openChat);
+  if (btnShortcutOpenChat) btnShortcutOpenChat.addEventListener('click', openChat);
+
+  if (btnToggleSound) {
+    btnToggleSound.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      if (soundIcon) {
+        soundIcon.className = soundEnabled ? 'ri-volume-up-line' : 'ri-volume-mute-line';
+      }
+      btnToggleSound.title = soundEnabled ? 'Mute Sound' : 'Unmute Sound';
+    });
+  }
+
+  if (btnClearChat) {
+    btnClearChat.addEventListener('click', () => {
+      if (chatMessagesContainer) {
+        chatMessagesContainer.querySelectorAll('.chat-msg-row').forEach(el => el.remove());
+        if (chatEmptyState) chatEmptyState.classList.remove('hidden');
+      }
+    });
+  }
+
+  if (btnQuickUrl) {
+    btnQuickUrl.addEventListener('click', () => {
+      if (!chatInputField) return;
+      if (!chatInputField.value.startsWith('http://') && !chatInputField.value.startsWith('https://')) {
+        chatInputField.value = 'https://' + chatInputField.value;
+      }
+      chatInputField.focus();
+    });
+  }
+
+  if (btnPasteClipboard) {
+    btnPasteClipboard.addEventListener('click', async () => {
+      if (!chatInputField) return;
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          chatInputField.value = text.trim();
+          chatInputField.focus();
+        }
+      } catch (_) {
+        chatInputField.focus();
+      }
+    });
+  }
+
+  if (btnShareSampleLink) {
+    btnShareSampleLink.addEventListener('click', () => {
+      if (!chatInputField) return;
+      const samples = [
+        'https://www.youtube.com',
+        'https://github.com',
+        'https://drive.google.com',
+        'https://en.wikipedia.org'
+      ];
+      const randomSample = samples[Math.floor(Math.random() * samples.length)];
+      chatInputField.value = randomSample;
+      chatInputField.focus();
+    });
+  }
+
+  if (btnToggleEmoji && chatEmojiDrawer) {
+    btnToggleEmoji.addEventListener('click', (e) => {
+      e.stopPropagation();
+      chatEmojiDrawer.classList.toggle('hidden');
+    });
+
+    chatEmojiDrawer.querySelectorAll('.emoji-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const emoji = chip.getAttribute('data-emoji');
+        if (emoji && chatInputField) {
+          chatInputField.value += emoji;
+          chatInputField.focus();
+        }
+        chatEmojiDrawer.classList.add('hidden');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!chatEmojiDrawer.contains(e.target) && e.target !== btnToggleEmoji) {
+        chatEmojiDrawer.classList.add('hidden');
+      }
+    });
+  }
+
+  // Input typing indicator & sending
+  if (chatInputField) {
+    chatInputField.addEventListener('input', () => {
+      if (!currentRoomCode) return;
+      const now = Date.now();
+      if (now - lastTypingTime > 1500) {
+        socket.emit('typing', { isTyping: true });
+        lastTypingTime = now;
+      }
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit('typing', { isTyping: false });
+      }, 1800);
+    });
+  }
+
+  if (chatInputForm) {
+    chatInputForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!chatInputField) return;
+      const text = chatInputField.value.trim();
+      if (!text) return;
+
+      if (!currentRoomCode) {
+        showError('Please generate or join a room code before sending messages.');
+        return;
+      }
+
+      const myName = rtcManager.isHost ? 'Host' : `Device ${socket.id ? socket.id.substring(0, 4).toUpperCase() : 'Guest'}`;
+
+      socket.emit('send-chat', { text, senderName: myName }, (res) => {
+        if (!res || !res.success) {
+          showError((res && res.message) || 'Failed to send message.');
+        }
+      });
+
+      socket.emit('typing', { isTyping: false });
+      clearTimeout(typingTimeout);
+      chatInputField.value = '';
+      chatInputField.focus();
     });
   }
 });

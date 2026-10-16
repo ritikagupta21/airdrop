@@ -37,6 +37,11 @@
         <a href="#features" class="nav-link"><i class="ri-flashlight-line"></i> Features</a>
         <a href="#security" class="nav-link"><i class="ri-shield-check-line"></i> Security</a>
         <a href="#about" class="nav-link"><i class="ri-information-line"></i> About</a>
+        <button class="nav-chat-pill-btn" id="nav-chat-btn" type="button" title="Open Room Chat &amp; Shared Links">
+          <i class="ri-chat-3-line"></i>
+          <span>Chat &amp; Links</span>
+          <span class="nav-unread-count hidden" id="nav-chat-badge">0</span>
+        </button>
       </div>
 
       <div class="nav-status">
@@ -217,6 +222,23 @@
               <div class="device-list" id="device-list">
                 <!-- injected by JS -->
               </div>
+            </div>
+
+            <!-- Room Chat & Links Shortcut Bar -->
+            <div class="chat-shortcut-bar" id="chat-shortcut-bar">
+              <div class="chat-shortcut-info">
+                <div class="chat-shortcut-icon-circle">
+                  <i class="ri-chat-voice-line"></i>
+                </div>
+                <div class="chat-shortcut-text-group">
+                  <div class="chat-shortcut-title">Room Chat &amp; Live Links</div>
+                  <div class="chat-shortcut-desc" id="chat-shortcut-desc">Send messages &amp; open shared links directly.</div>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm btn-shortcut-chat" id="btn-shortcut-open-chat" type="button">
+                <i class="ri-chat-3-line"></i> <span>Open Chat</span>
+                <span class="chat-shortcut-badge hidden" id="shortcut-chat-badge">0</span>
+              </button>
             </div>
 
           </div>
@@ -507,6 +529,122 @@
       </div>
     </div>
   </footer>
+
+  <!-- Floating Chat & Link Sharing Widget -->
+  <div class="chat-widget-wrapper" id="chat-widget-wrapper">
+    <!-- Floating Launcher Pill Button -->
+    <button class="chat-launcher-btn" id="chat-launcher-btn" aria-label="Toggle chat box" type="button">
+      <div class="chat-launcher-icon-box">
+        <i class="ri-chat-3-line chat-icon-default"></i>
+        <i class="ri-close-line chat-icon-close"></i>
+      </div>
+      <span class="chat-launcher-text">Chat &amp; Links</span>
+      <span class="chat-unread-badge hidden" id="chat-unread-badge">0</span>
+    </button>
+
+    <!-- Chat Window Modal / Panel -->
+    <div class="chat-window-panel glass-card hidden" id="chat-window-panel" role="region" aria-label="Room Chat and Links">
+      <!-- Chat Header -->
+      <div class="chat-header">
+        <div class="chat-header-info">
+          <div class="chat-avatar-box">
+            <i class="ri-message-3-line"></i>
+            <span class="chat-status-dot disconnected" id="chat-status-dot"></span>
+          </div>
+          <div class="chat-header-titles">
+            <div class="chat-title-row">
+              <h3 class="chat-title">Room Chat &amp; Links</h3>
+              <span class="chat-room-badge" id="chat-room-badge">No Room</span>
+            </div>
+            <p class="chat-subtitle" id="chat-subtitle">Pair devices to start chatting</p>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="chat-action-btn" id="btn-toggle-sound" title="Toggle Sound" aria-label="Toggle sound" type="button">
+            <i class="ri-volume-up-line" id="sound-icon"></i>
+          </button>
+          <button class="chat-action-btn" id="btn-clear-chat" title="Clear Chat" aria-label="Clear chat" type="button">
+            <i class="ri-delete-bin-line"></i>
+          </button>
+          <button class="chat-action-btn" id="btn-close-chat" title="Close Chat" aria-label="Close chat" type="button">
+            <i class="ri-arrow-down-s-line"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Actions Bar for Links -->
+      <div class="chat-quick-bar">
+        <span class="quick-bar-label"><i class="ri-links-line"></i> Quick:</span>
+        <button class="quick-chip" type="button" id="btn-quick-url">
+          <i class="ri-add-line"></i> Add URL
+        </button>
+        <button class="quick-chip" type="button" id="btn-paste-clipboard" title="Paste link from clipboard">
+          <i class="ri-clipboard-line"></i> Paste Link
+        </button>
+        <button class="quick-chip" type="button" id="btn-share-sample-link" title="Send a test link">
+          <i class="ri-share-box-line"></i> Demo Link
+        </button>
+      </div>
+
+      <!-- Messages Body -->
+      <div class="chat-messages-container" id="chat-messages-container">
+        <!-- Empty State -->
+        <div class="chat-empty-state" id="chat-empty-state">
+          <div class="chat-empty-icon">
+            <i class="ri-chat-smile-2-line"></i>
+          </div>
+          <h4>Instant Chat &amp; Open Links</h4>
+          <p>Send messages, notes, or links. When anyone shares a link, a 1-click <strong>"Open Link"</strong> button appears directly in the chat!</p>
+          <div class="chat-empty-tip">
+            <i class="ri-lightbulb-line"></i>
+            <span>Tip: Try sharing YouTube, Google Drive, or GitHub links to open them instantly on connected devices.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div class="chat-typing-indicator hidden" id="chat-typing-indicator">
+        <div class="typing-dots">
+          <span></span><span></span><span></span>
+        </div>
+        <span id="chat-typing-text">Someone is typing...</span>
+      </div>
+
+      <!-- Emoji Drawer -->
+      <div class="chat-emoji-drawer hidden" id="chat-emoji-drawer">
+        <span class="emoji-chip" data-emoji="🔗">🔗 Link</span>
+        <span class="emoji-chip" data-emoji="👍">👍</span>
+        <span class="emoji-chip" data-emoji="🔥">🔥</span>
+        <span class="emoji-chip" data-emoji="❤️">❤️</span>
+        <span class="emoji-chip" data-emoji="🚀">🚀</span>
+        <span class="emoji-chip" data-emoji="👋">👋</span>
+        <span class="emoji-chip" data-emoji="📁">📁</span>
+        <span class="emoji-chip" data-emoji="✅">✅</span>
+        <span class="emoji-chip" data-emoji="🎉">🎉</span>
+        <span class="emoji-chip" data-emoji="⚡">⚡</span>
+      </div>
+
+      <!-- Chat Input Area -->
+      <form class="chat-input-form" id="chat-input-form">
+        <div class="chat-input-wrapper">
+          <input
+            type="text"
+            class="chat-input"
+            id="chat-input-field"
+            placeholder="Type a message or paste a link..."
+            autocomplete="off"
+            maxlength="2000"
+          />
+          <button type="button" class="chat-btn-emoji" id="btn-toggle-emoji" title="Insert Emoji">
+            <i class="ri-emotion-line"></i>
+          </button>
+        </div>
+        <button type="submit" class="chat-send-btn" id="btn-send-chat" title="Send message (Enter)">
+          <i class="ri-send-plane-2-fill"></i>
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- Scripts -->
   <script src="webrtc.js"></script>
